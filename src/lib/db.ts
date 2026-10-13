@@ -107,10 +107,20 @@ export function getDatabase(): DatabaseSync {
   const existingUser = db.prepare('SELECT id FROM users WHERE id = ?').get('default-user');
   if (!existingUser) {
     const linkCode = 'MEDS_' + Math.floor(100000 + Math.random() * 900000);
+    const envChatId = process.env.TELEGRAM_CHAT_ID || null;
+    const envUsername = process.env.TELEGRAM_USERNAME || null;
+
     db.prepare(`
-      INSERT INTO users (id, name, telegram_link_code, created_at)
-      VALUES (?, ?, ?, ?)
-    `).run('default-user', 'My Meds', linkCode, new Date().toISOString());
+      INSERT INTO users (id, name, telegram_chat_id, telegram_username, telegram_link_code, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run('default-user', 'My Meds', envChatId, envUsername, linkCode, new Date().toISOString());
+
+    if (process.env.TELEGRAM_BOT_TOKEN) {
+      db.prepare(`INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)`).run(
+        'TELEGRAM_BOT_TOKEN',
+        process.env.TELEGRAM_BOT_TOKEN
+      );
+    }
 
     // Also add sample starter medications so the app immediately looks great
     const sampleMeds = [

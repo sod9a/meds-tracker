@@ -12,8 +12,8 @@ export function getDefaultUser(): User {
   return {
     id: row.id,
     name: row.name,
-    telegram_chat_id: row.telegram_chat_id,
-    telegram_username: row.telegram_username,
+    telegram_chat_id: row.telegram_chat_id || process.env.TELEGRAM_CHAT_ID || undefined,
+    telegram_username: row.telegram_username || process.env.TELEGRAM_USERNAME || undefined,
     telegram_link_code: row.telegram_link_code,
     created_at: row.created_at,
   };
