@@ -42,6 +42,9 @@ export function getDatabase(): DatabaseSync {
       color TEXT DEFAULT 'emerald',
       icon TEXT DEFAULT 'pill',
       active INTEGER DEFAULT 1,
+      stock_quantity INTEGER DEFAULT 30,
+      refill_threshold INTEGER DEFAULT 5,
+      track_stock INTEGER DEFAULT 0,
       created_at TEXT NOT NULL
     );
 
@@ -67,7 +70,33 @@ export function getDatabase(): DatabaseSync {
       sent_at TEXT NOT NULL,
       PRIMARY KEY (medication_id, scheduled_date)
     );
+
+    CREATE TABLE IF NOT EXISTS snoozes (
+      id TEXT PRIMARY KEY,
+      medication_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      snooze_until TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
+
+  // Migration: Ensure new columns exist in existing medications table
+  try {
+    const columns = db.prepare('PRAGMA table_info(medications)').all() as any[];
+    const colNames = new Set(columns.map((c) => c.name));
+
+    if (!colNames.has('stock_quantity')) {
+      db.exec('ALTER TABLE medications ADD COLUMN stock_quantity INTEGER DEFAULT 30;');
+    }
+    if (!colNames.has('refill_threshold')) {
+      db.exec('ALTER TABLE medications ADD COLUMN refill_threshold INTEGER DEFAULT 5;');
+    }
+    if (!colNames.has('track_stock')) {
+      db.exec('ALTER TABLE medications ADD COLUMN track_stock INTEGER DEFAULT 0;');
+    }
+  } catch (err) {
+    console.error('Migration error:', err);
+  }
 
   // Seed default user if not exists
   const existingUser = db.prepare('SELECT id FROM users WHERE id = ?').get('default-user');
@@ -87,7 +116,10 @@ export function getDatabase(): DatabaseSync {
         instructions: 'After breakfast with water',
         scheduled_time: '08:00',
         color: 'amber',
-        icon: 'capsule'
+        icon: 'capsule',
+        stock_quantity: 45,
+        refill_threshold: 10,
+        track_stock: 1,
       },
       {
         id: 'med-2',
@@ -96,7 +128,10 @@ export function getDatabase(): DatabaseSync {
         instructions: 'With lunch',
         scheduled_time: '13:00',
         color: 'emerald',
-        icon: 'tablet'
+        icon: 'tablet',
+        stock_quantity: 12,
+        refill_threshold: 5,
+        track_stock: 1,
       },
       {
         id: 'med-3',
@@ -105,13 +140,16 @@ export function getDatabase(): DatabaseSync {
         instructions: '30 mins before sleep',
         scheduled_time: '21:30',
         color: 'indigo',
-        icon: 'pill'
+        icon: 'pill',
+        stock_quantity: 4,
+        refill_threshold: 5,
+        track_stock: 1,
       }
     ];
 
     const insertMed = db.prepare(`
-      INSERT INTO medications (id, user_id, name, dosage, instructions, scheduled_time, color, icon, active, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+      INSERT INTO medications (id, user_id, name, dosage, instructions, scheduled_time, color, icon, active, stock_quantity, refill_threshold, track_stock, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
     `);
 
     for (const med of sampleMeds) {
@@ -124,6 +162,9 @@ export function getDatabase(): DatabaseSync {
         med.scheduled_time,
         med.color,
         med.icon,
+        med.stock_quantity,
+        med.refill_threshold,
+        med.track_stock,
         new Date().toISOString()
       );
     }

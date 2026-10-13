@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ScheduleItem } from '@/lib/types';
-import { Check, Clock, AlertCircle, Sparkles, Send, RotateCcw } from 'lucide-react';
+import { Check, Clock, AlertCircle, Sparkles, Send, RotateCcw, BellOff, Package } from 'lucide-react';
 
 interface TodayScheduleProps {
   schedule: ScheduleItem[];
@@ -129,6 +129,7 @@ export default function TodaySchedule({
             const isTaken = item.status === 'taken';
             const isSkipped = item.status === 'skipped';
             const isLoading = loadingId === item.medication.id;
+            const isSnoozed = !isTaken && !isSkipped && Boolean(item.snoozed_until);
 
             return (
               <div
@@ -139,13 +140,15 @@ export default function TodaySchedule({
                     ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60 opacity-90'
                     : isSkipped
                     ? 'bg-zinc-100/60 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-60'
+                    : isSnoozed
+                    ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 shadow-sm'
                     : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   {/* Left: Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
                         <Clock className="w-3 h-3 text-zinc-400" />
                         {formatTime(item.time)}
@@ -157,6 +160,27 @@ export default function TodaySchedule({
                       >
                         {item.medication.dosage}
                       </span>
+
+                      {/* Snooze Badge */}
+                      {isSnoozed && item.snoozed_until && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200">
+                          <span>💤 Snoozed until</span>
+                          <span>
+                            {new Date(item.snoozed_until).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </span>
+                      )}
+
+                      {/* Stock Pill Badge */}
+                      {item.medication.track_stock === 1 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                          <Package className="w-2.5 h-2.5" />
+                          <span>{item.medication.stock_quantity}</span>
+                        </span>
+                      )}
                     </div>
 
                     <h3
@@ -205,6 +229,8 @@ export default function TodaySchedule({
                           ? 'bg-emerald-500 text-white scale-105'
                           : isSkipped
                           ? 'bg-zinc-200 text-zinc-500 dark:bg-zinc-800'
+                          : isSnoozed
+                          ? 'bg-amber-500 text-white'
                           : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 group-hover:bg-teal-50 group-hover:text-teal-600 dark:group-hover:bg-teal-950/40 dark:group-hover:text-teal-400'
                       }`}
                     >
@@ -214,6 +240,8 @@ export default function TodaySchedule({
                         <Check className="w-5 h-5 stroke-[3]" />
                       ) : isSkipped ? (
                         <RotateCcw className="w-4 h-4" />
+                      ) : isSnoozed ? (
+                        <Clock className="w-5 h-5" />
                       ) : (
                         <Check className="w-5 h-5 stroke-2" />
                       )}

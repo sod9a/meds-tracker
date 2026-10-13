@@ -1,5 +1,5 @@
 import { getDatabase } from './db';
-import { Medication, MedLog, ScheduleItem, User } from './types';
+import { Medication, MedLog, ScheduleItem, User, SnoozeItem } from './types';
 
 const DEFAULT_USER_ID = 'default-user';
 
@@ -66,8 +66,32 @@ export function getAllMedications(userId: string = DEFAULT_USER_ID): Medication[
     color: r.color || 'emerald',
     icon: r.icon || 'pill',
     active: Number(r.active),
+    stock_quantity: Number(r.stock_quantity ?? 0),
+    refill_threshold: Number(r.refill_threshold ?? 5),
+    track_stock: Number(r.track_stock ?? 0),
     created_at: r.created_at,
   }));
+}
+
+export function getMedicationById(id: string): Medication | null {
+  const db = getDatabase();
+  const r = db.prepare('SELECT * FROM medications WHERE id = ?').get(id) as any;
+  if (!r) return null;
+  return {
+    id: r.id,
+    user_id: r.user_id,
+    name: r.name,
+    dosage: r.dosage,
+    instructions: r.instructions || '',
+    scheduled_time: r.scheduled_time,
+    color: r.color || 'emerald',
+    icon: r.icon || 'pill',
+    active: Number(r.active),
+    stock_quantity: Number(r.stock_quantity ?? 0),
+    refill_threshold: Number(r.refill_threshold ?? 5),
+    track_stock: Number(r.track_stock ?? 0),
+    created_at: r.created_at,
+  };
 }
 
 export function addMedication(med: Omit<Medication, 'id' | 'created_at'>): Medication {
@@ -76,8 +100,11 @@ export function addMedication(med: Omit<Medication, 'id' | 'created_at'>): Medic
   const createdAt = new Date().toISOString();
 
   db.prepare(`
-    INSERT INTO medications (id, user_id, name, dosage, instructions, scheduled_time, color, icon, active, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO medications (
+      id, user_id, name, dosage, instructions, scheduled_time, 
+      color, icon, active, stock_quantity, refill_threshold, track_stock, created_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
     med.user_id || DEFAULT_USER_ID,
@@ -88,13 +115,19 @@ export function addMedication(med: Omit<Medication, 'id' | 'created_at'>): Medic
     med.color || 'emerald',
     med.icon || 'pill',
     med.active ?? 1,
+    med.stock_quantity ?? 30,
+    med.refill_threshold ?? 5,
+    med.track_stock ?? 0,
     createdAt
   );
 
   return {
+    ...med,
     id,
     created_at: createdAt,
-    ...med,
+    stock_quantity: med.stock_quantity ?? 30,
+    refill_threshold: med.refill_threshold ?? 5,
+    track_stock: med.track_stock ?? 0,
   };
 }
 
@@ -103,8 +136,13 @@ export function updateMedication(id: string, updates: Partial<Medication>): void
   const fields: string[] = [];
   const values: any[] = [];
 
+  const allowed = [
+    'name', 'dosage', 'instructions', 'scheduled_time', 
+    'color', 'icon', 'active', 'stock_quantity', 'refill_threshold', 'track_stock'
+  ];
+
   for (const [key, val] of Object.entries(updates)) {
-    if (['name', 'dosage', 'instructions', 'scheduled_time', 'color', 'icon', 'active'].includes(key)) {
+    if (allowed.includes(key)) {
       fields.push(`${key} = ?`);
       values.push(val);
     }
@@ -116,8 +154,22 @@ export function updateMedication(id: string, updates: Partial<Medication>): void
   db.prepare(`UPDATE medications SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 }
 
+export function refillMedication(id: string, amount: number = 30): number {
+  const db = getDatabase();
+  db.prepare(`
+    UPDATE medications 
+    SET stock_quantity = MAX(0, stock_quantity + ?) 
+    WHERE id = ?
+  `).run(amount, id);
+
+  const row = db.prepare('SELECT stock_quantity FROM medications WHERE id = ?').get(id) as any;
+  return row ? row.stock_quantity : 0;
+}
+
 export function deleteMedication(id: string): void {
   const db = getDatabase();
+  db.prepare('DELETE FROM snoozes WHERE medication_id = ?').run(id);
+  db.prepare('DELETE FROM reminder_logs WHERE medication_id = ?').run(id);
   db.prepare('DELETE FROM med_logs WHERE medication_id = ?').run(id);
   db.prepare('DELETE FROM medications WHERE id = ?').run(id);
 }
@@ -126,11 +178,7 @@ export function getTodaySchedule(userId: string = DEFAULT_USER_ID, dateStr?: str
   const db = getDatabase();
   const date = dateStr || new Date().toISOString().slice(0, 10);
 
-  const meds = db.prepare(`
-    SELECT * FROM medications 
-    WHERE user_id = ? AND active = 1 
-    ORDER BY scheduled_time ASC
-  `).all(userId) as any[];
+  const meds = getAllMedications(userId).filter((m) => Boolean(m.active));
 
   const logs = db.prepare(`
     SELECT * FROM med_logs 
@@ -142,13 +190,20 @@ export function getTodaySchedule(userId: string = DEFAULT_USER_ID, dateStr?: str
     logsMap.set(log.medication_id, log as MedLog);
   }
 
+  const snoozes = db.prepare('SELECT * FROM snoozes WHERE user_id = ?').all(userId) as any[];
+  const snoozesMap = new Map<string, string>();
+  for (const sn of snoozes) {
+    snoozesMap.set(sn.medication_id, sn.snooze_until);
+  }
+
   return meds.map((med) => {
     const log = logsMap.get(med.id);
     return {
-      medication: med as Medication,
+      medication: med,
       log,
       status: log ? log.status : 'pending',
       time: med.scheduled_time,
+      snoozed_until: snoozesMap.get(med.id) || null,
     };
   });
 }
@@ -158,19 +213,23 @@ export function logMedicationDose(
   userId: string = DEFAULT_USER_ID,
   status: 'taken' | 'pending' | 'skipped' = 'taken',
   dateStr?: string
-): MedLog {
+): { log: MedLog; remainingStock?: number; lowStockWarning?: boolean } {
   const db = getDatabase();
   const date = dateStr || new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
 
-  // Find medication time
-  const med = db.prepare('SELECT scheduled_time FROM medications WHERE id = ?').get(medicationId) as any;
+  // Find medication
+  const med = getMedicationById(medicationId);
   const scheduledTime = med ? med.scheduled_time : '08:00';
 
   const existing = db.prepare(`
     SELECT * FROM med_logs 
     WHERE medication_id = ? AND user_id = ? AND scheduled_date = ?
   `).get(medicationId, userId, date) as any;
+
+  let previousStatus = existing ? existing.status : 'pending';
+
+  let logResult: MedLog;
 
   if (existing) {
     db.prepare(`
@@ -179,29 +238,88 @@ export function logMedicationDose(
       WHERE id = ?
     `).run(status, status === 'taken' ? now : null, existing.id);
 
-    return {
+    logResult = {
       ...existing,
       status,
       taken_at: status === 'taken' ? now : null,
     };
+  } else {
+    const id = 'log-' + Date.now();
+    db.prepare(`
+      INSERT INTO med_logs (id, medication_id, user_id, scheduled_date, scheduled_time, status, taken_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, medicationId, userId, date, scheduledTime, status, status === 'taken' ? now : null, now);
+
+    logResult = {
+      id,
+      medication_id: medicationId,
+      user_id: userId,
+      scheduled_date: date,
+      scheduled_time: scheduledTime,
+      status,
+      taken_at: status === 'taken' ? now : null,
+      created_at: now,
+    };
   }
 
-  const id = 'log-' + Date.now();
-  db.prepare(`
-    INSERT INTO med_logs (id, medication_id, user_id, scheduled_date, scheduled_time, status, taken_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, medicationId, userId, date, scheduledTime, status, status === 'taken' ? now : null, now);
+  // Clear any active snooze when dose is marked taken or skipped
+  if (status === 'taken' || status === 'skipped') {
+    db.prepare('DELETE FROM snoozes WHERE medication_id = ?').run(medicationId);
+  }
 
-  return {
-    id,
-    medication_id: medicationId,
-    user_id: userId,
-    scheduled_date: date,
-    scheduled_time: scheduledTime,
-    status,
-    taken_at: status === 'taken' ? now : null,
-    created_at: now,
-  };
+  // Inventory Stock decrement logic:
+  // If moving from non-taken to taken: decrement stock by 1
+  let remainingStock: number | undefined;
+  let lowStockWarning = false;
+
+  if (med && med.track_stock === 1) {
+    if (status === 'taken' && previousStatus !== 'taken') {
+      const newStock = Math.max(0, med.stock_quantity - 1);
+      db.prepare('UPDATE medications SET stock_quantity = ? WHERE id = ?').run(newStock, medicationId);
+      remainingStock = newStock;
+      if (newStock <= med.refill_threshold) {
+        lowStockWarning = true;
+      }
+    } else if (status !== 'taken' && previousStatus === 'taken') {
+      // Revert if undone
+      const revertedStock = med.stock_quantity + 1;
+      db.prepare('UPDATE medications SET stock_quantity = ? WHERE id = ?').run(revertedStock, medicationId);
+      remainingStock = revertedStock;
+    } else {
+      remainingStock = med.stock_quantity;
+    }
+  }
+
+  return { log: logResult, remainingStock, lowStockWarning };
+}
+
+// SNOOZE HELPERS
+export function createSnooze(medicationId: string, minutes: number = 15, userId: string = DEFAULT_USER_ID): string {
+  const db = getDatabase();
+  const snoozeUntil = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+  const id = 'snooze-' + Date.now();
+
+  // Clear existing snooze for this med
+  db.prepare('DELETE FROM snoozes WHERE medication_id = ?').run(medicationId);
+
+  db.prepare(`
+    INSERT INTO snoozes (id, medication_id, user_id, snooze_until, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(id, medicationId, userId, snoozeUntil, new Date().toISOString());
+
+  return snoozeUntil;
+}
+
+export function getDueSnoozes(): SnoozeItem[] {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const rows = db.prepare('SELECT * FROM snoozes WHERE snooze_until <= ?').all(now) as any[];
+  return rows as SnoozeItem[];
+}
+
+export function clearSnooze(id: string): void {
+  const db = getDatabase();
+  db.prepare('DELETE FROM snoozes WHERE id = ?').run(id);
 }
 
 export function getHistoryLogs(userId: string = DEFAULT_USER_ID, limit: number = 7) {

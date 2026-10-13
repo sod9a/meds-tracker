@@ -17,6 +17,9 @@ export interface Medication {
   color: string; // "emerald" | "sky" | "indigo" | "amber" | "rose"
   icon: string; // "pill" | "capsule" | "liquid" | "tablet"
   active: number; // 1 or 0
+  stock_quantity: number; // number of remaining pills
+  refill_threshold: number; // warn when stock <= threshold
+  track_stock: number; // 1 to enable, 0 to disable
   created_at: string;
 }
 
@@ -36,6 +39,7 @@ export interface ScheduleItem {
   log?: MedLog;
   status: 'taken' | 'pending' | 'skipped';
   time: string;
+  snoozed_until?: string | null;
 }
 
 export interface TelegramConfig {
@@ -45,4 +49,12 @@ export interface TelegramConfig {
   chat_id?: string;
   username?: string;
   link_code: string;
+}
+
+export interface SnoozeItem {
+  id: string;
+  medication_id: string;
+  user_id: string;
+  snooze_until: string;
+  created_at: string;
 }

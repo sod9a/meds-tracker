@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDefaultUser, getTodaySchedule } from '@/lib/meds-service';
+import { getDefaultUser, getTodaySchedule, getDueSnoozes, getMedicationById, clearSnooze } from '@/lib/meds-service';
 import { sendMedReminder } from '@/lib/telegram';
 import { getDatabase } from '@/lib/db';
 
@@ -29,6 +29,7 @@ export async function GET(req: Request) {
     const db = getDatabase();
     const sentReminders: string[] = [];
 
+    // 1. Check standard scheduled doses
     for (const item of schedule) {
       let shouldRemind = force;
 
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
 
       if ((shouldRemind && !alreadyReminded && item.status !== 'taken') || (force && item.status !== 'taken')) {
         await sendMedReminder(user.telegram_chat_id, item.medication);
-        
+
         // Record reminder so we don't send multiple times
         db.prepare(`
           INSERT INTO reminder_logs (medication_id, scheduled_date, sent_at)
@@ -62,6 +63,18 @@ export async function GET(req: Request) {
 
         sentReminders.push(item.medication.name);
       }
+    }
+
+    // 2. Check due snoozes
+    const dueSnoozes = getDueSnoozes();
+    for (const snooze of dueSnoozes) {
+      const med = getMedicationById(snooze.medication_id);
+      if (med && med.active) {
+        // Send follow-up reminder
+        await sendMedReminder(user.telegram_chat_id, med, true);
+        sentReminders.push(`${med.name} (Snooze)`);
+      }
+      clearSnooze(snooze.id);
     }
 
     return NextResponse.json({

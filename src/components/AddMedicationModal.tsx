@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Clock, Pill, Check } from 'lucide-react';
+import { X, Clock, Pill, Check, Package, AlertTriangle } from 'lucide-react';
 
 interface AddMedicationModalProps {
   isOpen: boolean;
@@ -13,6 +13,9 @@ interface AddMedicationModalProps {
     scheduled_time: string;
     color: string;
     icon: string;
+    stock_quantity: number;
+    refill_threshold: number;
+    track_stock: number;
   }) => Promise<void>;
 }
 
@@ -26,6 +29,9 @@ export default function AddMedicationModal({
   const [scheduledTime, setScheduledTime] = useState('08:00');
   const [instructions, setInstructions] = useState('');
   const [color, setColor] = useState('emerald');
+  const [trackStock, setTrackStock] = useState(true);
+  const [stockQuantity, setStockQuantity] = useState(30);
+  const [refillThreshold, setRefillThreshold] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -60,11 +66,16 @@ export default function AddMedicationModal({
         scheduled_time: scheduledTime,
         color,
         icon: 'pill',
+        stock_quantity: Number(stockQuantity) || 30,
+        refill_threshold: Number(refillThreshold) || 5,
+        track_stock: trackStock ? 1 : 0,
       });
       setName('');
       setDosage('');
       setInstructions('');
       setScheduledTime('08:00');
+      setStockQuantity(30);
+      setRefillThreshold(5);
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -166,6 +177,53 @@ export default function AddMedicationModal({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Pill Inventory & Refill Warnings */}
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-700/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                  Track Pill Inventory
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={trackStock}
+                onChange={(e) => setTrackStock(e.target.checked)}
+                className="w-4 h-4 text-teal-600 rounded-sm focus:ring-teal-500"
+              />
+            </div>
+
+            {trackStock && (
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-200 dark:border-zinc-700 text-xs">
+                <div>
+                  <label className="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">
+                    Initial Stock Count
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={stockQuantity}
+                    onChange={(e) => setStockQuantity(Number(e.target.value))}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">
+                    Alert when ≤ (Pills)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={refillThreshold}
+                    onChange={(e) => setRefillThreshold(Number(e.target.value))}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Instructions */}

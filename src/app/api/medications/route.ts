@@ -28,6 +28,9 @@ export async function POST(req: Request) {
       color: body.color || 'emerald',
       icon: body.icon || 'pill',
       active: body.active !== undefined ? (body.active ? 1 : 0) : 1,
+      stock_quantity: Number(body.stock_quantity) || 30,
+      refill_threshold: Number(body.refill_threshold) || 5,
+      track_stock: Number(body.track_stock) || 0,
     });
 
     return NextResponse.json({ success: true, medication: created });

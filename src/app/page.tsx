@@ -133,6 +133,20 @@ export default function Home() {
     }
   };
 
+  // Refill medication
+  const handleRefillMedication = async (id: string, amount: number) => {
+    try {
+      await fetch(`/api/medications/${id}/refill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      });
+      await fetchData();
+    } catch (err) {
+      console.error('Failed to refill medication:', err);
+    }
+  };
+
   // Telegram actions
   const handleSaveToken = async (token: string): Promise<boolean> => {
     try {
@@ -209,6 +223,7 @@ export default function Home() {
                 medications={medications}
                 onToggleActive={handleToggleActive}
                 onDeleteMedication={handleDeleteMedication}
+                onRefillMedication={handleRefillMedication}
                 onOpenAddModal={() => setIsAddModalOpen(true)}
               />
             )}

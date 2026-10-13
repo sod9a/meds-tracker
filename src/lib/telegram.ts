@@ -1,4 +1,13 @@
-import { getAppSetting, getDefaultUser, linkTelegramUser, logMedicationDose, getAllMedications } from './meds-service';
+import {
+  getAppSetting,
+  getDefaultUser,
+  linkTelegramUser,
+  logMedicationDose,
+  getAllMedications,
+  createSnooze,
+  getMedicationById,
+  getTodaySchedule,
+} from './meds-service';
 import { Medication } from './types';
 
 let lastUpdateOffset = 0;
@@ -48,17 +57,30 @@ export async function sendTelegramMessage(chatId: string, text: string, replyMar
   return await res.json();
 }
 
-export async function sendMedReminder(chatId: string, med: Medication) {
-  const text = `💊 *Medication Reminder*\n\nTime to take *${med.name}*\n• Dosage: \`${med.dosage}\`${
-    med.instructions ? `\n• Notes: _${med.instructions}_` : ''
-  }\n• Scheduled for: *${med.scheduled_time}*`;
+export async function sendMedReminder(chatId: string, med: Medication, isSnooze: boolean = false) {
+  let text = isSnooze
+    ? `⏰ *Snooze Follow-Up Reminder*\n\nTime to take *${med.name}*\n• Dosage: \`${med.dosage}\``
+    : `💊 *Medication Reminder*\n\nTime to take *${med.name}*\n• Dosage: \`${med.dosage}\``;
+
+  if (med.instructions) {
+    text += `\n• Notes: _${med.instructions}_`;
+  }
+  text += `\n• Scheduled for: *${med.scheduled_time}*`;
+
+  if (med.track_stock === 1) {
+    text += `\n• 📦 In stock: *${med.stock_quantity} remaining*`;
+    if (med.stock_quantity <= med.refill_threshold) {
+      text += ` _(Low stock!)_`;
+    }
+  }
 
   const replyMarkup = {
     inline_keyboard: [
       [
         { text: '✅ Mark as Taken', callback_data: `take_${med.id}` },
-        { text: '⏭️ Skip', callback_data: `skip_${med.id}` },
+        { text: '💤 Snooze 15m', callback_data: `snooze_${med.id}_15` },
       ],
+      [{ text: '⏭️ Skip', callback_data: `skip_${med.id}` }],
     ],
   };
 
@@ -69,7 +91,7 @@ export async function handleTelegramUpdate(update: any) {
   const token = getBotToken();
   if (!token) return { ok: false, message: 'No token' };
 
-  // 1. Handle /start command
+  // 1. Handle commands (/start, /today, /stock)
   if (update.message && update.message.text) {
     const chatId = String(update.message.chat.id);
     const text = update.message.text.trim();
@@ -84,7 +106,7 @@ export async function handleTelegramUpdate(update: any) {
         if (linked) {
           await sendTelegramMessage(
             chatId,
-            `🎉 *Successfully Connected!*\n\nYour Telegram is now linked to your *Med Tracker* account. You will automatically receive reminders when it's time for your medication!`
+            `🎉 *Successfully Connected!*\n\nYour Telegram is now linked to your *Med Tracker* account. You will automatically receive reminders when it's time for your medication!\n\nCommands you can use:\n• /today - View today's schedule\n• /stock - View current pill stock`
           );
           return { ok: true, action: 'linked' };
         } else {
@@ -103,6 +125,36 @@ export async function handleTelegramUpdate(update: any) {
         return { ok: true, action: 'welcome' };
       }
     }
+
+    if (text === '/today') {
+      const schedule = getTodaySchedule('default-user');
+      if (schedule.length === 0) {
+        await sendTelegramMessage(chatId, `📅 No medications scheduled for today.`);
+      } else {
+        let report = `📅 *Today's Medication Schedule*\n\n`;
+        for (const item of schedule) {
+          const statusIcon = item.status === 'taken' ? '✅' : item.status === 'skipped' ? '⏭️' : '⏳';
+          report += `${statusIcon} *${item.medication.name}* (${item.medication.dosage})\n   ⏰ ${item.time} — *${item.status.toUpperCase()}*\n`;
+        }
+        await sendTelegramMessage(chatId, report);
+      }
+      return { ok: true, action: 'today_report' };
+    }
+
+    if (text === '/stock') {
+      const meds = getAllMedications('default-user');
+      let report = `📦 *Medicine Cabinet Inventory*\n\n`;
+      for (const m of meds) {
+        if (m.track_stock === 1) {
+          const warning = m.stock_quantity <= m.refill_threshold ? ' ⚠️ Low stock!' : '';
+          report += `• *${m.name}*: ${m.stock_quantity} left${warning}\n`;
+        } else {
+          report += `• *${m.name}*: (Inventory tracking disabled)\n`;
+        }
+      }
+      await sendTelegramMessage(chatId, report);
+      return { ok: true, action: 'stock_report' };
+    }
   }
 
   // 2. Handle button clicks (Callback Queries)
@@ -112,13 +164,13 @@ export async function handleTelegramUpdate(update: any) {
     const chatId = String(query.message.chat.id);
     const messageId = query.message.message_id;
 
+    // A. Take dose
     if (data.startsWith('take_')) {
       const medId = data.replace('take_', '');
-      const meds = getAllMedications();
-      const med = meds.find((m) => m.id === medId);
+      const med = getMedicationById(medId);
       const medName = med ? med.name : 'Medication';
 
-      logMedicationDose(medId, 'default-user', 'taken');
+      const { remainingStock, lowStockWarning } = logMedicationDose(medId, 'default-user', 'taken');
 
       // Answer callback query toast
       await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
@@ -130,15 +182,24 @@ export async function handleTelegramUpdate(update: any) {
         }),
       });
 
-      // Edit message to reflect taken state
+      // Edit message to reflect taken state & stock
       const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      let messageText = `✅ *Completed!*\n\n*${medName}* was marked as *Taken* at *${nowStr}*. Great job staying on track!`;
+
+      if (remainingStock !== undefined) {
+        messageText += `\n📦 *Remaining stock*: ${remainingStock} pills left`;
+      }
+      if (lowStockWarning) {
+        messageText += `\n\n⚠️ *Low Stock Warning!* You only have *${remainingStock}* remaining. Please refill soon!`;
+      }
+
       await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
           message_id: messageId,
-          text: `✅ *Completed!*\n\n*${medName}* was marked as *Taken* at *${nowStr}*. Great job staying on track!`,
+          text: messageText,
           parse_mode: 'Markdown',
         }),
       });
@@ -146,10 +207,48 @@ export async function handleTelegramUpdate(update: any) {
       return { ok: true, action: 'taken' };
     }
 
+    // B. Snooze reminder (e.g. snooze_med-1_15)
+    if (data.startsWith('snooze_')) {
+      const parts = data.split('_');
+      const medId = parts[1];
+      const mins = Number(parts[2]) || 15;
+
+      const med = getMedicationById(medId);
+      const medName = med ? med.name : 'Medication';
+
+      const snoozeUntil = createSnooze(medId, mins, 'default-user');
+      const targetTimeStr = new Date(snoozeUntil).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          callback_query_id: query.id,
+          text: `Snoozed for ${mins} minutes! Reminder set for ${targetTimeStr} 💤`,
+        }),
+      });
+
+      await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          message_id: messageId,
+          text: `💤 *Snoozed for ${mins} minutes*\n\nReminder for *${medName}* will alert you again at *${targetTimeStr}*.`,
+          parse_mode: 'Markdown',
+        }),
+      });
+
+      return { ok: true, action: 'snoozed' };
+    }
+
+    // C. Skip dose
     if (data.startsWith('skip_')) {
       const medId = data.replace('skip_', '');
-      const meds = getAllMedications();
-      const med = meds.find((m) => m.id === medId);
+      const med = getMedicationById(medId);
       const medName = med ? med.name : 'Medication';
 
       logMedicationDose(medId, 'default-user', 'skipped');
