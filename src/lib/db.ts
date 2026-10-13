@@ -60,6 +60,13 @@ export function getDatabase(): DatabaseSync {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS reminder_logs (
+      medication_id TEXT NOT NULL,
+      scheduled_date TEXT NOT NULL,
+      sent_at TEXT NOT NULL,
+      PRIMARY KEY (medication_id, scheduled_date)
+    );
   `);
 
   // Seed default user if not exists

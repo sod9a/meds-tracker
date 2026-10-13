@@ -62,8 +62,21 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
+    // 1. Live auto-refresh of data
     const interval = setInterval(fetchData, 4000);
-    return () => clearInterval(interval);
+
+    // 2. Local dev reminder scheduler (checks every 30s)
+    const cronInterval = setInterval(() => {
+      fetch('/api/cron/reminders').catch(() => {});
+    }, 30000);
+
+    // Initial check on load
+    fetch('/api/cron/reminders').catch(() => {});
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(cronInterval);
+    };
   }, [fetchData]);
 
   // Dose logging handler

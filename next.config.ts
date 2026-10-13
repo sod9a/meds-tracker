@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Hide development indicator so it doesn't block mobile navigation buttons */
+  devIndicators: false,
   turbopack: {
     rules: {
       "*.css": {
