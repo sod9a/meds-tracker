@@ -9,9 +9,14 @@ export function getDatabase(): DatabaseSync {
     return dbInstance;
   }
 
-  const dataDir = path.join(process.cwd(), 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  let dataDir = path.join(process.cwd(), 'data');
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch {
+    // Ephemeral /tmp fallback for Vercel Serverless environment
+    dataDir = '/tmp';
   }
 
   const dbPath = path.join(dataDir, 'meds.db');
