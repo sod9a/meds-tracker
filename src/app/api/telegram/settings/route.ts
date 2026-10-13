@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getDefaultUser, setAppSetting, unlinkTelegram } from '@/lib/meds-service';
-import { getBotInfo, getBotToken } from '@/lib/telegram';
+import { getBotInfo, getBotToken, pollTelegramUpdates } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const user = getDefaultUser();
     const token = getBotToken();
     let botInfo: { ok: boolean; username?: string; first_name?: string; error?: string } = {
       ok: false,
@@ -15,8 +14,12 @@ export async function GET() {
     };
 
     if (token) {
+      // In local dev, sync any pending Telegram updates (messages, button clicks)
+      await pollTelegramUpdates();
       botInfo = await getBotInfo();
     }
+
+    const user = getDefaultUser();
 
     return NextResponse.json({
       success: true,

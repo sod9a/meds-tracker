@@ -1,6 +1,8 @@
 import { getAppSetting, getDefaultUser, linkTelegramUser, logMedicationDose, getAllMedications } from './meds-service';
 import { Medication } from './types';
 
+let lastUpdateOffset = 0;
+
 export function getBotToken(): string | null {
   return process.env.TELEGRAM_BOT_TOKEN || getAppSetting('TELEGRAM_BOT_TOKEN') || null;
 }
@@ -74,7 +76,7 @@ export async function handleTelegramUpdate(update: any) {
     const username = update.message.chat.username || update.message.chat.first_name || '';
 
     if (text.startsWith('/start')) {
-      const parts = text.split(' ');
+      const parts = text.split(/\s+/);
       const code = parts[1];
 
       if (code) {
@@ -177,4 +179,25 @@ export async function handleTelegramUpdate(update: any) {
   }
 
   return { ok: true, action: 'ignored' };
+}
+
+// Automatically pulls pending updates when running on localhost
+export async function pollTelegramUpdates() {
+  const token = getBotToken();
+  if (!token) return [];
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates?offset=${lastUpdateOffset + 1}&timeout=0`);
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.result)) {
+      for (const update of data.result) {
+        lastUpdateOffset = Math.max(lastUpdateOffset, update.update_id);
+        await handleTelegramUpdate(update);
+      }
+      return data.result;
+    }
+  } catch (err) {
+    console.error('Error polling Telegram updates:', err);
+  }
+  return [];
 }

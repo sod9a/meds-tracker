@@ -62,6 +62,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 4000);
+    return () => clearInterval(interval);
   }, [fetchData]);
 
   // Dose logging handler
