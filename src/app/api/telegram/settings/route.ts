@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getDefaultUser, setAppSetting, unlinkTelegram } from '@/lib/meds-service';
-import { getBotInfo, getBotToken, pollTelegramUpdates } from '@/lib/telegram';
+import { getBotInfo, getBotToken, pollTelegramUpdates, setTelegramWebhook } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const token = getBotToken();
     let botInfo: { ok: boolean; username?: string; first_name?: string; error?: string } = {
@@ -14,8 +14,14 @@ export async function GET() {
     };
 
     if (token) {
-      // In local dev, sync any pending Telegram updates (messages, button clicks)
-      await pollTelegramUpdates();
+      const host = req.headers.get('host');
+      if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+        // In production cloud (Vercel), ensure Telegram webhook is registered
+        await setTelegramWebhook(`https://${host}/api/bot`);
+      } else {
+        // In local dev, sync any pending Telegram updates
+        await pollTelegramUpdates();
+      }
       botInfo = await getBotInfo();
     }
 

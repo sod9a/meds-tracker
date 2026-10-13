@@ -34,6 +34,18 @@ export async function getBotInfo(): Promise<{ ok: boolean; username?: string; fi
   }
 }
 
+export async function setTelegramWebhook(webhookUrl: string): Promise<boolean> {
+  const token = getBotToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+    const data = await res.json();
+    return Boolean(data.ok);
+  } catch {
+    return false;
+  }
+}
+
 export async function sendTelegramMessage(chatId: string, text: string, replyMarkup?: any) {
   const token = getBotToken();
   if (!token) throw new Error('Telegram bot token is not set');
