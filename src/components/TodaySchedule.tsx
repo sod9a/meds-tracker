@@ -80,18 +80,18 @@ export default function TodaySchedule({
 
   return (
     <div className="space-y-6">
-      {/* Bot Reminder Quick Action - Solid, purposeful, no rainbow gradient */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex items-center justify-between">
+      {/* Bot Reminder Quick Action - Bright clinical card */}
+      <div className="bg-gradient-to-r from-blue-50/90 to-sky-50/70 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shrink-0">
-            <BellRing className="w-4 h-4 stroke-[2]" />
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+            <BellRing className="w-4 h-4 stroke-[2.2]" />
           </div>
           <div>
-            <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block">
+            <span className="text-xs font-bold text-blue-950 block">
               Telegram Alerts
             </span>
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {telegramConnected ? 'Active and monitoring' : 'Connect to receive reminder pings'}
+            <span className="text-[11px] text-blue-700/80 font-medium">
+              {telegramConnected ? 'Connected & sending reminder pings' : 'Link Telegram to receive phone alerts'}
             </span>
           </div>
         </div>
@@ -100,28 +100,28 @@ export default function TodaySchedule({
           <button
             onClick={handleTriggerTest}
             disabled={testSending}
-            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium transition-colors disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 text-xs font-bold shadow-2xs transition-colors disabled:opacity-50"
           >
             {testSending ? 'Sending…' : 'Test Ping'}
           </button>
         ) : (
           <button
             onClick={onOpenTelegramModal}
-            className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-semibold transition-colors"
+            className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-2xs transition-colors"
           >
-            Link Telegram
+            Link Bot
           </button>
         )}
       </div>
 
       {/* Main Schedule Sections */}
       {schedule.length === 0 ? (
-        <div className="text-center py-12 px-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <Clock className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+        <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+          <Clock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+          <h3 className="text-sm font-bold text-slate-800">
             No medications scheduled for today
           </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Add medicines in your cabinet to populate today&apos;s checklist.
           </p>
         </div>
@@ -130,15 +130,15 @@ export default function TodaySchedule({
           {sections.map((section) => (
             <div key={section.title} className="space-y-2.5">
               <div className="flex items-baseline justify-between px-1">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                   {section.title}
                 </h2>
-                <span className="text-[11px] text-zinc-400">
+                <span className="text-[11px] text-slate-400 font-medium">
                   {section.subtitle}
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {section.items.map((item) => {
                   const isTaken = item.status === 'taken';
                   const isSkipped = item.status === 'skipped';
@@ -149,54 +149,62 @@ export default function TodaySchedule({
                     <div
                       key={item.medication.id}
                       onClick={() => handleToggle(item)}
-                      className={`rounded-xl p-3.5 border transition-all cursor-pointer select-none ${
+                      className={`rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                         isTaken
-                          ? 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 opacity-75'
+                          ? 'bg-emerald-50/40 border-emerald-200/70 opacity-80'
                           : isSkipped
-                          ? 'bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800/60 opacity-50'
+                          ? 'bg-slate-50 border-slate-200/60 opacity-50'
                           : isSnoozed
-                          ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800'
-                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xs hover:border-zinc-300 dark:hover:border-zinc-700'
+                          ? 'bg-amber-50/50 border-amber-300 shadow-2xs'
+                          : 'bg-white border-slate-200/90 shadow-xs hover:border-blue-400 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         {/* Info Column */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 tabular-nums">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span
+                              className={`text-xs font-bold px-2 py-0.5 rounded-md border tabular-nums ${
+                                isTaken
+                                  ? 'bg-emerald-100/70 text-emerald-800 border-emerald-200'
+                                  : isSnoozed
+                                  ? 'bg-amber-100 text-amber-900 border-amber-200'
+                                  : 'bg-blue-50 text-blue-700 border-blue-100'
+                              }`}
+                            >
                               {formatTime(item.time)}
                             </span>
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                            <span className="text-xs font-semibold text-slate-500">
                               • {item.medication.dosage}
                             </span>
 
                             {/* Snooze Status Indicator */}
                             {isSnoozed && item.snoozed_until && (
-                              <span className="text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
                                 Snoozed to {new Date(item.snoozed_until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             )}
                           </div>
 
                           <h3
-                            className={`text-sm font-bold truncate ${
+                            className={`text-base font-bold truncate ${
                               isTaken
-                                ? 'line-through text-zinc-500 dark:text-zinc-400'
-                                : 'text-zinc-900 dark:text-zinc-100'
+                                ? 'line-through text-slate-400'
+                                : 'text-slate-900'
                             }`}
                           >
                             {item.medication.name}
                           </h3>
 
                           {item.medication.instructions && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                            <p className="text-xs text-slate-500 mt-0.5 truncate">
                               {item.medication.instructions}
                             </p>
                           )}
 
                           {isTaken && item.log?.taken_at && (
-                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
-                              <Check className="w-3 h-3 stroke-[2.5]" />
+                            <p className="text-[11px] text-emerald-700 font-bold mt-1.5 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                               Logged at {new Date(item.log.taken_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           )}
@@ -207,33 +215,33 @@ export default function TodaySchedule({
                           {!isTaken && !isSkipped && (
                             <button
                               onClick={(e) => handleSkip(item, e)}
-                              className="text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 px-2 py-1 rounded"
+                              className="text-xs font-semibold text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-md hover:bg-slate-100 transition-colors"
                             >
                               Skip
                             </button>
                           )}
 
-                          {/* Checkbox Target (44px min touch size) */}
+                          {/* Checkbox Target (min 44px touch size) */}
                           <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border ${
+                            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all border shadow-2xs ${
                               isTaken
                                 ? 'bg-emerald-600 border-emerald-600 text-white'
                                 : isSkipped
-                                ? 'bg-zinc-200 border-zinc-300 text-zinc-500 dark:bg-zinc-800 dark:border-zinc-700'
+                                ? 'bg-slate-100 border-slate-300 text-slate-500'
                                 : isSnoozed
                                 ? 'bg-amber-500 border-amber-500 text-white'
-                                : 'bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400 hover:border-zinc-400'
+                                : 'bg-slate-50 hover:bg-blue-50 border-slate-300 hover:border-blue-500 text-slate-300 hover:text-blue-600'
                             }`}
                             aria-label={isTaken ? 'Mark as pending' : 'Mark as taken'}
                           >
                             {isLoading ? (
-                              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                             ) : isTaken ? (
-                              <Check className="w-4 h-4 stroke-[3]" />
+                              <Check className="w-5 h-5 stroke-[3]" />
                             ) : isSkipped ? (
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-4 h-4 stroke-[2.2]" />
                             ) : (
-                              <div className="w-2.5 h-2.5 rounded-xs bg-zinc-300 dark:bg-zinc-600" />
+                              <div className="w-3.5 h-3.5 rounded-sm border-2 border-slate-300 hover:border-blue-500" />
                             )}
                           </div>
                         </div>

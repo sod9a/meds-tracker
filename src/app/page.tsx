@@ -191,7 +191,7 @@ export default function Home() {
   const takenDoses = schedule.filter((s) => s.status === 'taken').length;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans antialiased">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans antialiased">
       {/* App Header */}
       <Header
         todayProgress={{ total: totalDoses, taken: takenDoses }}
@@ -202,9 +202,9 @@ export default function Home() {
       {/* Main Container - Mobile Centered View */}
       <main className="flex-1 w-full max-w-md mx-auto px-4 py-4 pb-28">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-zinc-400">
-            <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-xs font-medium">Loading your cabinet...</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-xs font-semibold">Loading your cabinet...</p>
           </div>
         ) : (
           <>
@@ -233,22 +233,22 @@ export default function Home() {
             {activeTab === 'settings' && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                  <h2 className="text-base font-bold text-slate-900">
                     Configuration
                   </h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-slate-500 font-medium">
                     Database storage and bot notifications
                   </p>
                 </div>
 
                 {/* Telegram Bot Card */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-3 shadow-2xs">
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <h3 className="text-sm font-bold text-slate-900">
                         Telegram Bot Reminder
                       </h3>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {telegramConfig.user_linked
                           ? `Linked to chat ID ${telegramConfig.user_chat_id}`
                           : 'Not linked to an account'}
@@ -256,10 +256,10 @@ export default function Home() {
                     </div>
 
                     <span
-                      className={`text-xs px-2 py-0.5 rounded border font-semibold ${
+                      className={`text-xs px-2.5 py-0.5 rounded-md border font-bold ${
                         telegramConfig.user_linked
-                          ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                          : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
                       }`}
                     >
                       {telegramConfig.user_linked ? 'Active' : 'Disconnected'}
@@ -268,19 +268,19 @@ export default function Home() {
 
                   <button
                     onClick={() => setIsTelegramModalOpen(true)}
-                    className="w-full py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 transition-colors"
+                    className="w-full py-2.5 rounded-xl border border-slate-300 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-xs font-bold text-slate-700 hover:text-blue-700 transition-colors shadow-2xs"
                   >
                     Open Bot Settings
                   </button>
                 </div>
 
                 {/* Environment Info */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-1.5 shadow-2xs">
-                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-1.5 shadow-xs">
+                  <span className="text-xs font-bold text-slate-900 block">
                     Storage Engine
                   </span>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                    Local SQLite database active at <code className="text-zinc-800 dark:text-zinc-200 font-mono text-[11px] bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded">data/meds.db</code>. When deploying to Vercel, this connects to Vercel Postgres.
+                  <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                    Local SQLite database active at <code className="text-blue-700 font-mono text-[11px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">data/meds.db</code>. When deploying to Vercel, this connects to Vercel Postgres.
                   </p>
                 </div>
               </div>

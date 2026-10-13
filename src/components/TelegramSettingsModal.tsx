@@ -74,21 +74,21 @@ export default function TelegramSettingsModal({
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/60 transition-opacity animate-in fade-in">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-2xs transition-opacity animate-in fade-in">
+      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl border border-slate-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div>
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-base font-bold text-slate-900">
               Telegram Reminder Integration
             </h2>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-slate-500 font-medium">
               Connect your personal bot for automated notifications
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -98,10 +98,10 @@ export default function TelegramSettingsModal({
         <div className="p-4 space-y-4 overflow-y-auto">
           {feedback && (
             <div
-              className={`p-3 rounded-lg text-xs font-medium flex items-center gap-2 border ${
+              className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border shadow-2xs ${
                 feedback.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                  : 'bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-rose-50 text-rose-800 border-rose-200'
               }`}
             >
               {feedback.type === 'success' ? (
@@ -114,10 +114,10 @@ export default function TelegramSettingsModal({
           )}
 
           {/* Current Status Box */}
-          <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+          <div className="bg-blue-50/60 rounded-2xl p-3.5 border border-blue-100 space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-zinc-500">Bot Connection</span>
-              <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+              <span className="text-slate-600 font-medium">Bot Connection</span>
+              <span className="font-bold text-slate-900">
                 {telegramConfig.bot_connected
                   ? `Connected (@${telegramConfig.bot_username})`
                   : 'Disconnected'}
@@ -125,20 +125,20 @@ export default function TelegramSettingsModal({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-zinc-500">User Account</span>
-              <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+              <span className="text-slate-600 font-medium">User Account</span>
+              <span className="font-bold text-slate-900">
                 {telegramConfig.user_linked ? 'Linked' : 'Not linked'}
               </span>
             </div>
 
             {telegramConfig.user_linked && (
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex justify-between items-center text-[11px]">
-                <span className="text-zinc-400 font-mono">
+              <div className="pt-2 border-t border-blue-100 flex justify-between items-center text-[11px]">
+                <span className="text-blue-800 font-mono font-medium">
                   Chat ID: {telegramConfig.user_chat_id}
                 </span>
                 <button
                   onClick={onUnlink}
-                  className="text-rose-600 hover:text-rose-700 font-semibold"
+                  className="text-rose-600 hover:text-rose-700 font-bold"
                 >
                   Unlink
                 </button>
@@ -148,11 +148,11 @@ export default function TelegramSettingsModal({
 
           {/* Step 1: Set Bot Token */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+            <h3 className="text-xs font-bold text-slate-800">
               1. Telegram Bot Token
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-zinc-900 dark:text-zinc-100 font-medium underline">@BotFather</a> with <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded text-[11px]">/newbot</code>, then save the API token:
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline">@BotFather</a> with <code className="bg-blue-50 text-blue-700 border border-blue-100 px-1 rounded text-[11px] font-mono">/newbot</code>, then save the API token:
             </p>
 
             <form onSubmit={handleSave} className="flex gap-2">
@@ -161,12 +161,12 @@ export default function TelegramSettingsModal({
                 placeholder={telegramConfig.has_token ? '•••••••••••• (Configured)' : 'Paste API Token'}
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
-                className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden"
+                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-hidden"
               />
               <button
                 type="submit"
                 disabled={saving || !tokenInput.trim()}
-                className="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-semibold transition-colors disabled:opacity-40"
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors disabled:opacity-40 shadow-2xs"
               >
                 {saving ? 'Saving…' : 'Save'}
               </button>
@@ -175,11 +175,11 @@ export default function TelegramSettingsModal({
 
           {/* Step 2: Link Chat */}
           {telegramConfig.bot_connected && !telegramConfig.user_linked && (
-            <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <h3 className="text-xs font-bold text-slate-800">
                 2. Link Your Telegram Chat
               </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Open your bot in Telegram and start the chat:
               </p>
 
@@ -188,7 +188,7 @@ export default function TelegramSettingsModal({
                   href={telegramDeepLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-semibold transition-colors"
+                  className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-2xs"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Open @{telegramConfig.bot_username}</span>
@@ -196,23 +196,23 @@ export default function TelegramSettingsModal({
                 </a>
               )}
 
-              <p className="text-[11px] text-zinc-400 text-center">
-                Or send this command in chat: <code className="font-mono text-zinc-700 dark:text-zinc-300">/start {telegramConfig.link_code}</code>
+              <p className="text-[11px] text-slate-400 text-center">
+                Or send this command in chat: <code className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded">/start {telegramConfig.link_code}</code>
               </p>
             </div>
           )}
 
           {/* Step 3: Test Notification */}
           {telegramConfig.user_linked && (
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <h3 className="text-xs font-bold text-slate-800">
                 Verify Connection
               </h3>
               <button
                 type="button"
                 onClick={handleTest}
                 disabled={testing}
-                className="w-full py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-2xs"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{testing ? 'Sending alert…' : 'Send Test Reminder to Phone'}</span>

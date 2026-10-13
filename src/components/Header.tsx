@@ -28,50 +28,52 @@ export default function Header({ todayProgress, telegramConnected, onOpenTelegra
     : 0;
 
   return (
-    <header className="sticky top-0 z-30 bg-zinc-50/95 dark:bg-zinc-950/95 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 transition-colors">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b border-slate-200/80 px-4 py-3 shadow-2xs transition-colors">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
             {dateStr || 'Today'}
           </span>
-          <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-lg font-bold tracking-tight text-slate-900">
             Medication Schedule
           </h1>
         </div>
 
-        {/* Telegram Connection Badge - Functional, no pulsing */}
+        {/* Telegram Connection Badge */}
         <button
           onClick={onOpenTelegramModal}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border shadow-2xs ${
             telegramConnected
-              ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-              : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+              : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
           }`}
           title="Configure Telegram Bot Reminder"
         >
           {telegramConnected ? (
-            <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 dark:text-emerald-400" />
+            <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600" />
           ) : (
-            <Send className="w-3.5 h-3.5 text-zinc-500" />
+            <Send className="w-3.5 h-3.5 text-blue-600" />
           )}
-          <span>{telegramConnected ? 'Telegram Linked' : 'Connect Bot'}</span>
+          <span>{telegramConnected ? 'Bot Linked' : 'Connect Bot'}</span>
         </button>
       </div>
 
       {/* Daily Progress Status */}
       {todayProgress.total > 0 && (
-        <div className="max-w-md mx-auto mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-900">
+        <div className="max-w-md mx-auto mt-3 pt-2.5 border-t border-slate-100">
           <div className="flex justify-between items-baseline text-xs mb-1.5">
-            <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+            <span className="text-slate-600 font-medium">
               Daily completion
             </span>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-200 tabular-nums">
+            <span className="font-bold text-blue-700 tabular-nums">
               {todayProgress.taken} of {todayProgress.total} doses ({percentage}%)
             </span>
           </div>
-          <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60">
             <div
-              className="bg-emerald-600 dark:bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out"
+              className={`h-full rounded-full transition-all duration-300 ease-out ${
+                percentage === 100 ? 'bg-emerald-500' : 'bg-blue-600'
+              }`}
               style={{ width: `${percentage}%` }}
             />
           </div>

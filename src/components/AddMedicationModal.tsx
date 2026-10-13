@@ -74,21 +74,21 @@ export default function AddMedicationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/60 transition-opacity animate-in fade-in">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-2xs transition-opacity animate-in fade-in">
+      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl border border-slate-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div>
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-base font-bold text-slate-900">
               New Medication
             </h2>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-slate-500 font-medium">
               Add a daily schedule and supply tracking
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -98,7 +98,7 @@ export default function AddMedicationModal({
         <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto">
           {/* Medication Name */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            <label className="block text-xs font-bold text-slate-700 mb-1">
               Medication Name <span className="text-rose-600">*</span>
             </label>
             <input
@@ -107,13 +107,13 @@ export default function AddMedicationModal({
               placeholder="e.g. Amoxicillin, Omega-3"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
             />
           </div>
 
           {/* Dosage */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            <label className="block text-xs font-bold text-slate-700 mb-1">
               Dosage <span className="text-rose-600">*</span>
             </label>
             <input
@@ -122,7 +122,7 @@ export default function AddMedicationModal({
               placeholder="e.g. 500mg, 1 tablet"
               value={dosage}
               onChange={(e) => setDosage(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 mb-2"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all mb-2"
             />
             {/* Quick dosage chips */}
             <div className="flex flex-wrap gap-1.5">
@@ -131,7 +131,7 @@ export default function AddMedicationModal({
                   key={preset}
                   type="button"
                   onClick={() => setDosage(preset)}
-                  className="text-xs px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-750 transition-colors"
+                  className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 font-medium transition-colors"
                 >
                   {preset}
                 </button>
@@ -141,7 +141,7 @@ export default function AddMedicationModal({
 
           {/* Scheduled Time */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            <label className="block text-xs font-bold text-slate-700 mb-1">
               Scheduled Time <span className="text-rose-600">*</span>
             </label>
             <input
@@ -149,7 +149,7 @@ export default function AddMedicationModal({
               required
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 mb-2"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all mb-2"
             />
             {/* Quick time chips */}
             <div className="grid grid-cols-4 gap-1.5">
@@ -158,10 +158,10 @@ export default function AddMedicationModal({
                   key={preset.time}
                   type="button"
                   onClick={() => setScheduledTime(preset.time)}
-                  className={`text-xs py-1 px-1 rounded text-center font-medium border transition-colors ${
+                  className={`text-xs py-1.5 px-1 rounded-lg text-center font-semibold border transition-all ${
                     scheduledTime === preset.time
-                      ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold'
-                      : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-2xs'
+                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {preset.label}
@@ -171,24 +171,24 @@ export default function AddMedicationModal({
           </div>
 
           {/* Supply & Inventory */}
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2.5">
+          <div className="p-3.5 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                <Package className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Package className="w-4 h-4 text-blue-600" />
                 <span>Track Supply & Refill Alerts</span>
               </span>
               <input
                 type="checkbox"
                 checked={trackStock}
                 onChange={(e) => setTrackStock(e.target.checked)}
-                className="w-4 h-4 rounded text-zinc-900 focus:ring-zinc-500"
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
               />
             </div>
 
             {trackStock && (
-              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-zinc-200 dark:border-zinc-700 text-xs">
+              <div className="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-blue-100 text-xs">
                 <div>
-                  <label className="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Initial tablet count
                   </label>
                   <input
@@ -196,11 +196,11 @@ export default function AddMedicationModal({
                     min="1"
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 tabular-nums"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 tabular-nums focus:border-blue-500 focus:outline-hidden"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                     Warn when ≤ (Tablets)
                   </label>
                   <input
@@ -208,7 +208,7 @@ export default function AddMedicationModal({
                     min="1"
                     value={refillThreshold}
                     onChange={(e) => setRefillThreshold(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 tabular-nums"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 tabular-nums focus:border-blue-500 focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function AddMedicationModal({
 
           {/* Notes / Instructions */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            <label className="block text-xs font-bold text-slate-700 mb-1">
               Instructions (Optional)
             </label>
             <input
@@ -225,7 +225,7 @@ export default function AddMedicationModal({
               placeholder="e.g. Take with breakfast"
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
             />
           </div>
 
@@ -234,14 +234,14 @@ export default function AddMedicationModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-semibold transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors disabled:opacity-50 shadow-2xs"
             >
               {isSubmitting ? 'Saving…' : 'Save Prescription'}
             </button>

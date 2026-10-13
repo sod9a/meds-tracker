@@ -20,7 +20,7 @@ export default function BottomNav({ activeTab, onChangeTab }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-xs border-t border-slate-200/90 shadow-sm pb-safe">
       <div className="max-w-md mx-auto px-2 h-14 flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -31,11 +31,11 @@ export default function BottomNav({ activeTab, onChangeTab }: BottomNavProps) {
               onClick={() => onChangeTab(tab.id)}
               className={`flex-1 h-full flex flex-col items-center justify-center transition-colors min-h-[44px] ${
                 isActive
-                  ? 'text-zinc-900 dark:text-zinc-100 font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-medium'
+                  ? 'text-blue-600 font-bold'
+                  : 'text-slate-400 hover:text-slate-600 font-medium'
               }`}
             >
-              <Icon className={`w-4 h-4 mb-1 ${isActive ? 'stroke-[2.4] text-emerald-600 dark:text-emerald-400' : 'stroke-[1.8]'}`} />
+              <Icon className={`w-4 h-4 mb-1 transition-transform ${isActive ? 'stroke-[2.5] text-blue-600 scale-110' : 'stroke-[1.8]'}`} />
               <span className="text-[11px] leading-none">{tab.label}</span>
             </button>
           );
