@@ -42,6 +42,7 @@ export async function sendTelegramMessage(chatId: string, text: string, replyMar
     chat_id: chatId,
     text,
     parse_mode: 'Markdown',
+    disable_notification: false,
   };
 
   if (replyMarkup) {
