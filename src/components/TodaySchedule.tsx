@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ScheduleItem } from '@/lib/types';
-import { Check, Clock, AlertCircle, Sparkles, Send, RotateCcw, BellOff, Package } from 'lucide-react';
+import { Check, Clock, RotateCcw, Package, Send, BellRing } from 'lucide-react';
 
 interface TodayScheduleProps {
   schedule: ScheduleItem[];
@@ -58,39 +58,41 @@ export default function TodaySchedule({
     return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
   };
 
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case 'amber':
-        return 'border-amber-200 dark:border-amber-900/40 bg-amber-500/10 text-amber-700 dark:text-amber-400';
-      case 'indigo':
-        return 'border-indigo-200 dark:border-indigo-900/40 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400';
-      case 'rose':
-        return 'border-rose-200 dark:border-rose-900/40 bg-rose-500/10 text-rose-700 dark:text-rose-400';
-      case 'sky':
-        return 'border-sky-200 dark:border-sky-900/40 bg-sky-500/10 text-sky-700 dark:text-sky-400';
-      case 'emerald':
-      default:
-        return 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
-    }
-  };
+  // Group items by time period for natural visual rhythm
+  const morningItems = schedule.filter((i) => {
+    const h = parseInt(i.time.split(':')[0], 10);
+    return h < 12;
+  });
+  const afternoonItems = schedule.filter((i) => {
+    const h = parseInt(i.time.split(':')[0], 10);
+    return h >= 12 && h < 17;
+  });
+  const eveningItems = schedule.filter((i) => {
+    const h = parseInt(i.time.split(':')[0], 10);
+    return h >= 17;
+  });
+
+  const sections = [
+    { title: 'Morning', subtitle: 'Before 12:00 PM', items: morningItems },
+    { title: 'Afternoon', subtitle: '12:00 PM - 5:00 PM', items: afternoonItems },
+    { title: 'Evening & Night', subtitle: 'After 5:00 PM', items: eveningItems },
+  ].filter((s) => s.items.length > 0);
 
   return (
-    <div className="space-y-4">
-      {/* Telegram Quick-Action Banner */}
-      <div className="bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-emerald-500/10 border border-sky-200/60 dark:border-sky-800/40 rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+    <div className="space-y-6">
+      {/* Bot Reminder Quick Action - Solid, purposeful, no rainbow gradient */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
-            <Send className="w-4 h-4 -rotate-12" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shrink-0">
+            <BellRing className="w-4 h-4 stroke-[2]" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-              Telegram Reminders
-            </h4>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {telegramConnected
-                ? 'Bot is linked and ready'
-                : 'Connect to receive ping alerts'}
-            </p>
+            <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block">
+              Telegram Alerts
+            </span>
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {telegramConnected ? 'Active and monitoring' : 'Connect to receive reminder pings'}
+            </span>
           </div>
         </div>
 
@@ -98,159 +100,150 @@ export default function TodaySchedule({
           <button
             onClick={handleTriggerTest}
             disabled={testSending}
-            className="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 active:scale-95 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
+            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium transition-colors disabled:opacity-50"
           >
-            {testSending ? 'Sending...' : 'Test Ping'}
+            {testSending ? 'Sending…' : 'Test Ping'}
           </button>
         ) : (
           <button
             onClick={onOpenTelegramModal}
-            className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-95 text-white text-xs font-semibold shadow-xs transition-all"
+            className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-semibold transition-colors"
           >
-            Connect
+            Link Telegram
           </button>
         )}
       </div>
 
-      {/* Schedule Items Timeline */}
+      {/* Main Schedule Sections */}
       {schedule.length === 0 ? (
-        <div className="text-center py-12 px-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-          <Sparkles className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+        <div className="text-center py-12 px-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <Clock className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
             No medications scheduled for today
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Tap the + button below to add your first medication!
+            Add medicines in your cabinet to populate today&apos;s checklist.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {schedule.map((item) => {
-            const isTaken = item.status === 'taken';
-            const isSkipped = item.status === 'skipped';
-            const isLoading = loadingId === item.medication.id;
-            const isSnoozed = !isTaken && !isSkipped && Boolean(item.snoozed_until);
-
-            return (
-              <div
-                key={item.medication.id}
-                onClick={() => handleToggle(item)}
-                className={`relative group rounded-2xl p-4 transition-all duration-200 cursor-pointer border select-none ${
-                  isTaken
-                    ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60 opacity-90'
-                    : isSkipped
-                    ? 'bg-zinc-100/60 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-60'
-                    : isSnoozed
-                    ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 shadow-sm'
-                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  {/* Left: Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-                        <Clock className="w-3 h-3 text-zinc-400" />
-                        {formatTime(item.time)}
-                      </span>
-                      <span
-                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${getColorClasses(
-                          item.medication.color
-                        )}`}
-                      >
-                        {item.medication.dosage}
-                      </span>
-
-                      {/* Snooze Badge */}
-                      {isSnoozed && item.snoozed_until && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200">
-                          <span>💤 Snoozed until</span>
-                          <span>
-                            {new Date(item.snoozed_until).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </span>
-                      )}
-
-                      {/* Stock Pill Badge */}
-                      {item.medication.track_stock === 1 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                          <Package className="w-2.5 h-2.5" />
-                          <span>{item.medication.stock_quantity}</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <h3
-                      className={`text-base font-bold truncate ${
-                        isTaken
-                          ? 'line-through text-zinc-500 dark:text-zinc-400'
-                          : 'text-zinc-900 dark:text-zinc-100'
-                      }`}
-                    >
-                      {item.medication.name}
-                    </h3>
-
-                    {item.medication.instructions && (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-1">
-                        {item.medication.instructions}
-                      </p>
-                    )}
-
-                    {isTaken && item.log?.taken_at && (
-                      <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-                        <Check className="w-3 h-3 stroke-[2.5]" />
-                        Taken at{' '}
-                        {new Date(item.log.taken_at).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Right: Big Touch Action Button */}
-                  <div className="flex items-center gap-1.5 self-center">
-                    {!isTaken && !isSkipped && (
-                      <button
-                        onClick={(e) => handleSkip(item, e)}
-                        className="text-[11px] font-semibold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-2 py-1 rounded-lg transition-colors"
-                        title="Skip dose"
-                      >
-                        Skip
-                      </button>
-                    )}
-
-                    <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
-                        isTaken
-                          ? 'bg-emerald-500 text-white scale-105'
-                          : isSkipped
-                          ? 'bg-zinc-200 text-zinc-500 dark:bg-zinc-800'
-                          : isSnoozed
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 group-hover:bg-teal-50 group-hover:text-teal-600 dark:group-hover:bg-teal-950/40 dark:group-hover:text-teal-400'
-                      }`}
-                    >
-                      {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : isTaken ? (
-                        <Check className="w-5 h-5 stroke-[3]" />
-                      ) : isSkipped ? (
-                        <RotateCcw className="w-4 h-4" />
-                      ) : isSnoozed ? (
-                        <Clock className="w-5 h-5" />
-                      ) : (
-                        <Check className="w-5 h-5 stroke-2" />
-                      )}
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-6">
+          {sections.map((section) => (
+            <div key={section.title} className="space-y-2.5">
+              <div className="flex items-baseline justify-between px-1">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                  {section.title}
+                </h2>
+                <span className="text-[11px] text-zinc-400">
+                  {section.subtitle}
+                </span>
               </div>
-            );
-          })}
+
+              <div className="space-y-2">
+                {section.items.map((item) => {
+                  const isTaken = item.status === 'taken';
+                  const isSkipped = item.status === 'skipped';
+                  const isSnoozed = !isTaken && !isSkipped && Boolean(item.snoozed_until);
+                  const isLoading = loadingId === item.medication.id;
+
+                  return (
+                    <div
+                      key={item.medication.id}
+                      onClick={() => handleToggle(item)}
+                      className={`rounded-xl p-3.5 border transition-all cursor-pointer select-none ${
+                        isTaken
+                          ? 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 opacity-75'
+                          : isSkipped
+                          ? 'bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800/60 opacity-50'
+                          : isSnoozed
+                          ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800'
+                          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xs hover:border-zinc-300 dark:hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        {/* Info Column */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 tabular-nums">
+                              {formatTime(item.time)}
+                            </span>
+                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                              • {item.medication.dosage}
+                            </span>
+
+                            {/* Snooze Status Indicator */}
+                            {isSnoozed && item.snoozed_until && (
+                              <span className="text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded">
+                                Snoozed to {new Date(item.snoozed_until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3
+                            className={`text-sm font-bold truncate ${
+                              isTaken
+                                ? 'line-through text-zinc-500 dark:text-zinc-400'
+                                : 'text-zinc-900 dark:text-zinc-100'
+                            }`}
+                          >
+                            {item.medication.name}
+                          </h3>
+
+                          {item.medication.instructions && (
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                              {item.medication.instructions}
+                            </p>
+                          )}
+
+                          {isTaken && item.log?.taken_at && (
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
+                              <Check className="w-3 h-3 stroke-[2.5]" />
+                              Logged at {new Date(item.log.taken_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Interactive Action Area */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {!isTaken && !isSkipped && (
+                            <button
+                              onClick={(e) => handleSkip(item, e)}
+                              className="text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 px-2 py-1 rounded"
+                            >
+                              Skip
+                            </button>
+                          )}
+
+                          {/* Checkbox Target (44px min touch size) */}
+                          <div
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border ${
+                              isTaken
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : isSkipped
+                                ? 'bg-zinc-200 border-zinc-300 text-zinc-500 dark:bg-zinc-800 dark:border-zinc-700'
+                                : isSnoozed
+                                ? 'bg-amber-500 border-amber-500 text-white'
+                                : 'bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400 hover:border-zinc-400'
+                            }`}
+                            aria-label={isTaken ? 'Mark as pending' : 'Mark as taken'}
+                          >
+                            {isLoading ? (
+                              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : isTaken ? (
+                              <Check className="w-4 h-4 stroke-[3]" />
+                            ) : isSkipped ? (
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            ) : (
+                              <div className="w-2.5 h-2.5 rounded-xs bg-zinc-300 dark:bg-zinc-600" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -234,45 +234,53 @@ export default function Home() {
               <div className="space-y-4">
                 <div>
                   <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                    Settings & Integrations
+                    Configuration
                   </h2>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Manage your local database and Telegram Bot notifications
+                    Database storage and bot notifications
                   </p>
                 </div>
 
                 {/* Telegram Bot Card */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-3 shadow-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                      <Send className="w-5 h-5" />
-                    </div>
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-bold">Telegram Reminder Bot</h3>
-                      <p className="text-xs text-zinc-500">
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                        Telegram Bot Reminder
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">
                         {telegramConfig.user_linked
-                          ? 'Connected & actively sending alerts'
-                          : 'Not linked to a chat yet'}
+                          ? `Linked to chat ID ${telegramConfig.user_chat_id}`
+                          : 'Not linked to an account'}
                       </p>
                     </div>
+
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded border font-semibold ${
+                        telegramConfig.user_linked
+                          ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                          : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700'
+                      }`}
+                    >
+                      {telegramConfig.user_linked ? 'Active' : 'Disconnected'}
+                    </span>
                   </div>
 
                   <button
                     onClick={() => setIsTelegramModalOpen(true)}
-                    className="w-full py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-bold transition-colors"
+                    className="w-full py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 transition-colors"
                   >
-                    Configure Telegram Bot
+                    Open Bot Settings
                   </button>
                 </div>
 
-                {/* Architecture Info Card */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2 shadow-xs">
-                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    <Smartphone className="w-4 h-4 text-teal-500" />
-                    <span>Local Testing Environment</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 leading-relaxed">
-                    Database is running on local SQLite (<code className="text-teal-600">data/meds.db</code>). When ready to deploy to Vercel, this seamlessly connects to Vercel Postgres with GitHub.
+                {/* Environment Info */}
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-1.5 shadow-2xs">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">
+                    Storage Engine
+                  </span>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                    Local SQLite database active at <code className="text-zinc-800 dark:text-zinc-200 font-mono text-[11px] bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded">data/meds.db</code>. When deploying to Vercel, this connects to Vercel Postgres.
                   </p>
                 </div>
               </div>

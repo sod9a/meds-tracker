@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Pill, Send } from 'lucide-react';
+import { Send, Check } from 'lucide-react';
 
 interface HeaderProps {
   todayProgress: { total: number; taken: number };
@@ -10,13 +10,13 @@ interface HeaderProps {
 }
 
 export default function Header({ todayProgress, telegramConnected, onOpenTelegramModal }: HeaderProps) {
-  const [dateStr, setDateStr] = useState<string>('Today');
+  const [dateStr, setDateStr] = useState<string>('');
 
   useEffect(() => {
     const today = new Date();
     setDateStr(
       today.toLocaleDateString('en-US', {
-        weekday: 'short',
+        weekday: 'long',
         month: 'short',
         day: 'numeric',
       })
@@ -28,50 +28,50 @@ export default function Header({ todayProgress, telegramConnected, onOpenTelegra
     : 0;
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 transition-colors">
+    <header className="sticky top-0 z-30 bg-zinc-50/95 dark:bg-zinc-950/95 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 transition-colors">
       <div className="max-w-md mx-auto flex items-center justify-between">
-        {/* App Title & Date */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-teal-500/10 dark:bg-teal-400/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-inner">
-            <Pill className="w-5 h-5 stroke-[2.2]" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
-              Meds Tracker
-            </h1>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              {dateStr}
-            </p>
-          </div>
+        <div>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block">
+            {dateStr || 'Today'}
+          </span>
+          <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Medication Schedule
+          </h1>
         </div>
 
-        {/* Telegram Status Pill Button */}
+        {/* Telegram Connection Badge - Functional, no pulsing */}
         <button
           onClick={onOpenTelegramModal}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-xs active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
             telegramConnected
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-              : 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200 dark:border-sky-800 animate-pulse'
+              ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+              : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700'
           }`}
           title="Configure Telegram Bot Reminder"
         >
-          <Send className="w-3.5 h-3.5" />
-          <span>{telegramConnected ? 'Bot Linked' : 'Connect Bot'}</span>
+          {telegramConnected ? (
+            <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <Send className="w-3.5 h-3.5 text-zinc-500" />
+          )}
+          <span>{telegramConnected ? 'Telegram Linked' : 'Connect Bot'}</span>
         </button>
       </div>
 
-      {/* Progress Bar for Daily Adherence */}
+      {/* Daily Progress Status */}
       {todayProgress.total > 0 && (
-        <div className="max-w-md mx-auto mt-2.5">
-          <div className="flex justify-between items-center text-[11px] text-zinc-500 dark:text-zinc-400 font-medium mb-1">
-            <span>Daily Progress</span>
-            <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-              {todayProgress.taken} of {todayProgress.total} taken ({percentage}%)
+        <div className="max-w-md mx-auto mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-900">
+          <div className="flex justify-between items-baseline text-xs mb-1.5">
+            <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+              Daily completion
+            </span>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-200 tabular-nums">
+              {todayProgress.taken} of {todayProgress.total} doses ({percentage}%)
             </span>
           </div>
-          <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-teal-500 h-full rounded-full transition-all duration-500 ease-out"
+              className="bg-emerald-600 dark:bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out"
               style={{ width: `${percentage}%` }}
             />
           </div>
